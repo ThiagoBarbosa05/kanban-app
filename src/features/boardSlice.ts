@@ -52,6 +52,13 @@ export const boardSlice = createSlice({
     addBoard(state, action: PayloadAction<BoardState>) {
       state.push(action.payload)
     },
+    editBoard(state, action: PayloadAction<BoardState>) {
+      const boardToEdit = state.find((board) => board.id === action.payload.id)
+      if (boardToEdit) {
+        boardToEdit.name = action.payload.name
+        boardToEdit.columns = action.payload.columns
+      }
+    },
     selectBoard(state, action: PayloadAction<{ id: string }>) {
       state.forEach((board) => (board.isSelected = false))
 
@@ -64,6 +71,6 @@ export const boardSlice = createSlice({
   },
 })
 
-export const { addBoard, selectBoard } = boardSlice.actions
+export const { addBoard, selectBoard, editBoard } = boardSlice.actions
 
 export default boardSlice.reducer

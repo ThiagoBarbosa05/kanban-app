@@ -6,11 +6,11 @@ import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { useAppSelector } from '@/app/hooks'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { BoardState } from '@/features/boardSlice'
+import { editBoard } from '@/features/boardSlice'
 
 interface EditBoardProps {
   children: React.ReactNode
@@ -34,11 +34,11 @@ export default function EditBoard({ children, boardId }: EditBoardProps) {
   )
 
   const {
-    // handleSubmit,
+    handleSubmit,
     control,
     register,
     formState: { errors },
-  } = useForm<BoardState>({
+  } = useForm<BoardFormData>({
     resolver: zodResolver(boardFormSchema),
     defaultValues: {
       name: board?.name,
@@ -46,12 +46,16 @@ export default function EditBoard({ children, boardId }: EditBoardProps) {
     },
   })
 
-  // const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch()
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'columns',
   })
+
+  function onSubmitEditBoard(data: BoardFormData) {
+    dispatch(editBoard({ id: boardId!, ...data }))
+  }
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
@@ -65,7 +69,7 @@ export default function EditBoard({ children, boardId }: EditBoardProps) {
             </h3>
 
             <form
-              // onSubmit={handleSubmit(onBoardSubmit)}
+              onSubmit={handleSubmit(onSubmitEditBoard)}
               className="flex w-full flex-col gap-6"
             >
               <div>
@@ -125,7 +129,7 @@ export default function EditBoard({ children, boardId }: EditBoardProps) {
                 className="py-3 text-xs font-bold text-white"
                 variant="primary"
               >
-                Create New Board
+                Save Changes
               </Button>
             </form>
 
