@@ -1,16 +1,38 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Plus, X } from 'lucide-react'
+import { useFieldArray, useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DialogOverlay } from '@/components/ui/overlay'
 import { Select } from '@/components/ui/select'
+
 interface AddNewTaskProps {
   children: React.ReactNode
 }
 
+const AddNewTaskSchema = z.object({
+  title: z.string().min(1, { message: "Can't be empty" }),
+  description: z.string().optional(),
+  subtasks: z.array(z.object({ title: z.string() })),
+  boardId: z.string(),
+})
+
+type AddNewTaskData = z.infer<typeof AddNewTaskSchema>
+
 export default function AddNewTask({ children }: AddNewTaskProps) {
+  const { control } = useForm<AddNewTaskData>({
+    resolver: zodResolver(AddNewTaskSchema),
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'subtasks',
+  })
+
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>

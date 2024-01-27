@@ -1,4 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { useState } from 'react'
 
 import { useAppSelector } from '@/app/hooks'
 
@@ -11,12 +12,14 @@ interface BoardDropdownMenuProps {
 }
 
 export function BoardDropdownMenu({ children }: BoardDropdownMenuProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
   const board = useAppSelector((state) =>
     state.board.find((board) => board.isSelected),
   )
 
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenu.Trigger asChild>{children}</DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content className="pr-6">
@@ -30,7 +33,7 @@ export function BoardDropdownMenu({ children }: BoardDropdownMenuProps) {
               </button>
             </EditBoard>
 
-            <DeleteBoard>
+            <DeleteBoard closeMenuDropdown={setIsOpen}>
               <button className="cursor-pointer text-sm font-medium leading-6 text-red">
                 Delete Board
               </button>

@@ -1,16 +1,35 @@
 import * as Dialog from '@radix-ui/react-dialog'
+import { useState } from 'react'
 
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
 import { DialogOverlay } from '@/components/ui/overlay'
+import { deleteBoard, selectBoard } from '@/features/boardSlice'
 
 interface DeleteBoardProps {
   children: React.ReactNode
+  closeMenuDropdown: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export function DeleteBoard({ children }: DeleteBoardProps) {
+export function DeleteBoard({ children, closeMenuDropdown }: DeleteBoardProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const boards = useAppSelector((state) => state.board)
+
+  const boardToDelete = boards.find((board) => board.isSelected)
+
+  const dispatch = useAppDispatch()
+
+  function handleDeleteBoard() {
+    dispatch(deleteBoard({ id: boardToDelete!.id }))
+    dispatch(selectBoard({}))
+    setIsOpen(!isOpen)
+    closeMenuDropdown(!isOpen)
+  }
+
   return (
-    <Dialog.Root>
+    <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
         <DialogOverlay />
@@ -24,7 +43,11 @@ export function DeleteBoard({ children }: DeleteBoardProps) {
             </p>
 
             <div className="flex flex-col gap-4">
-              <Button variant="destructive" className="py-2 text-xs leading-6">
+              <Button
+                onClick={handleDeleteBoard}
+                variant="destructive"
+                className="py-2 text-xs leading-6"
+              >
                 Delete
               </Button>
               <Dialog.Close asChild>

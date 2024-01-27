@@ -3,7 +3,8 @@ import { ChevronDown, KanbanSquare, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import { useAppSelector } from '@/app/hooks'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { selectBoard } from '@/features/boardSlice'
 
 import { ThemeToggle } from '../theme/theme-toggle'
 import { DialogOverlay } from '../ui/overlay'
@@ -11,22 +12,26 @@ import { AddNewBoard } from './board/add-new-board'
 
 export function MenuMobile() {
   const [isMenuOpen, setMenuIsOpen] = useState<boolean>(false)
-  const [selectedBoard, setSelectedBoard] = useState<number>(0)
-
-  const handleBoardClick = (index: number) => {
-    setSelectedBoard(index)
-  }
 
   const boards = useAppSelector((state) => state.board)
 
-  console.log(boards)
+  const dispatch = useAppDispatch()
+
+  const board = boards.find((board) => board.isSelected)
+
+  const handleBoardClick = (boardId?: string) => {
+    if (boardId) {
+      dispatch(selectBoard({ id: boardId }))
+    }
+    setMenuIsOpen(!isMenuOpen)
+  }
 
   return (
     <Dialog.Root open={isMenuOpen} onOpenChange={setMenuIsOpen}>
       <Dialog.Trigger asChild>
         <div className="flex items-center gap-2 md:hidden">
           <span className="text-lg font-bold text-black dark:text-white">
-            Platform Launch
+            {board ? board.name : 'No boards found'}
           </span>
           <ChevronDown
             strokeWidth={3}
@@ -47,13 +52,13 @@ export function MenuMobile() {
             ALL BOARDS (3)
           </Dialog.Title>
           <nav className="mb-4">
-            {boards.map((board, index) => (
+            {boards.map((board) => (
               <button
-                onClick={() => handleBoardClick(index)}
+                onClick={() => handleBoardClick(board.id)}
                 key={board.id}
                 className={twMerge(
                   'flex w-[85%] items-center gap-3 rounded-r-full py-[0.875rem] pl-6 text-md font-bold text-medium-grey outline-none ',
-                  selectedBoard === index && 'bg-main-purple text-white ',
+                  board.isSelected && 'bg-main-purple text-white ',
                 )}
               >
                 <KanbanSquare />

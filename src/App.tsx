@@ -2,6 +2,7 @@ import { Eye } from 'lucide-react'
 import { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+import { useAppSelector } from './app/hooks'
 import { Board } from './components/board'
 // import { EmptyBoard } from './components/empty-board'
 import { Header } from './components/header'
@@ -10,6 +11,7 @@ import { ThemeProvider } from './components/theme/theme-provider'
 
 export function App() {
   const [isHideSidebar, setIsHideSidebar] = useState(false)
+  const boards = useAppSelector((state) => state.board)
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="kanban-theme">
@@ -20,8 +22,7 @@ export function App() {
             isHideSidebar={isHideSidebar}
             setIsHideSidebar={setIsHideSidebar}
           />
-          {/* <EmptyBoard /> */}
-          <Board />
+          {boards.length === 0 ? <div></div> : <Board />}
         </section>
       </div>
       <button

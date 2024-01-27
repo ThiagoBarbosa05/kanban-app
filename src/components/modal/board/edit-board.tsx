@@ -10,7 +10,9 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DialogOverlay } from '@/components/ui/overlay'
 import { editBoard } from '@/features/boardSlice'
+import { getRandomColor } from '@/lib/utils'
 
 interface EditBoardProps {
   children: React.ReactNode
@@ -54,18 +56,24 @@ export default function EditBoard({ children, boardId }: EditBoardProps) {
   })
 
   function onSubmitEditBoard(data: BoardFormData) {
+    data.columns.forEach((col) => {
+      if (col.color === '') {
+        col.color = getRandomColor()
+      }
+    })
     dispatch(editBoard({ id: boardId!, ...data }))
+    setIsOpen(!isOpen)
   }
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.DialogOverlay />
+        <DialogOverlay />
         <Dialog.Content>
-          <Box size="md" className="">
+          <Box size="md">
             <h3 className="mb-6 text-lg font-bold text-black dark:text-white">
-              Add New Board
+              Edit Board
             </h3>
 
             <form

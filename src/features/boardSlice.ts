@@ -10,6 +10,18 @@ export interface BoardState {
     name: string
     color: string
   }[]
+  tasks?: {
+    id: string
+    title: string
+    description?: string
+    boardId: string
+    columnId: string
+    subtasks: {
+      id: string
+      title: string
+      isCompleted: boolean
+    }[]
+  }[]
 }
 
 const initialState: BoardState[] = [
@@ -22,6 +34,7 @@ const initialState: BoardState[] = [
       { id: nanoid(), name: 'DOING', color: '#8471F2' },
       { id: nanoid(), name: 'DONE', color: '#67E2AE' },
     ],
+    tasks: [],
   },
   {
     id: nanoid(),
@@ -32,6 +45,7 @@ const initialState: BoardState[] = [
       { id: nanoid(), name: 'DOING', color: '#8471F2' },
       { id: nanoid(), name: 'DONE', color: '#67E2AE' },
     ],
+    tasks: [],
   },
   {
     id: nanoid(),
@@ -42,6 +56,7 @@ const initialState: BoardState[] = [
       { id: nanoid(), name: 'DOING', color: '#8471F2' },
       { id: nanoid(), name: 'DONE', color: '#67E2AE' },
     ],
+    tasks: [],
   },
 ]
 
@@ -59,18 +74,37 @@ export const boardSlice = createSlice({
         boardToEdit.columns = action.payload.columns
       }
     },
-    selectBoard(state, action: PayloadAction<{ id: string }>) {
+    selectBoard(state, action: PayloadAction<{ id?: string }>) {
       state.forEach((board) => (board.isSelected = false))
 
       const boardFounded = state.find((board) => board.id === action.payload.id)
 
       if (boardFounded) {
         boardFounded.isSelected = true
+      } else {
+        state[0].isSelected = true
+      }
+    },
+    deleteBoard(state, action: PayloadAction<{ id: string }>) {
+      return state.filter((board) => board.id !== action.payload.id)
+    },
+    addColumn(
+      state,
+      action: PayloadAction<{
+        id: string
+        columns: { id: string; name: string; color: string }[]
+      }>,
+    ) {
+      const board = state.find((board) => board.id === action.payload.id)
+
+      if (board) {
+        board.columns = action.payload.columns
       }
     },
   },
 })
 
-export const { addBoard, selectBoard, editBoard } = boardSlice.actions
+export const { addBoard, selectBoard, editBoard, deleteBoard, addColumn } =
+  boardSlice.actions
 
 export default boardSlice.reducer

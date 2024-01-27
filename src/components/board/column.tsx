@@ -1,6 +1,9 @@
 // import { TaskDetail } from '../modal/task/task-detail'
 // import { Task } from './task'
 
+import { TaskDetail } from '../modal/task/task-detail'
+import { Task } from './task'
+
 interface ColumnProps {
   column: {
     id: string
