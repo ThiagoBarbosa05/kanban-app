@@ -1,37 +1,66 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as Dialog from '@radix-ui/react-dialog'
+import { nanoid } from '@reduxjs/toolkit'
 import { Plus, X } from 'lucide-react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DialogOverlay } from '@/components/ui/overlay'
 import { Select } from '@/components/ui/select'
+import { addTask } from '@/features/boardSlice'
 
 interface AddNewTaskProps {
   children: React.ReactNode
 }
 
-const AddNewTaskSchema = z.object({
+const addTaskSchema = z.object({
   title: z.string().min(1, { message: "Can't be empty" }),
   description: z.string().optional(),
-  subtasks: z.array(z.object({ title: z.string() })),
-  boardId: z.string(),
+  subtasks: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+    }),
+  ),
+  columnId: z.string(),
 })
 
-type AddNewTaskData = z.infer<typeof AddNewTaskSchema>
+type AddTaskData = z.infer<typeof addTaskSchema>
 
 export default function AddNewTask({ children }: AddNewTaskProps) {
-  const { control } = useForm<AddNewTaskData>({
-    resolver: zodResolver(AddNewTaskSchema),
+  const dispatch = useAppDispatch()
+  const board = useAppSelector((state) =>
+    state.board.find((board) => board.isSelected),
+  )
+
+  if (!board) {
+    throw new Error('Board not found')
+  }
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<AddTaskData>({
+    resolver: zodResolver(addTaskSchema),
   })
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'subtasks',
   })
+
+  function onAddTask(data: AddTaskData) {
+    console.log(data)
+    dispatch(addTask({ ...data, id: nanoid(), boardId: board!.id }))
+  }
+
+  console.log(board)
 
   return (
     <Dialog.Root>
@@ -44,7 +73,10 @@ export default function AddNewTask({ children }: AddNewTaskProps) {
               Add New Task
             </h3>
 
-            <form className="flex w-full flex-col gap-6">
+            <form
+              onSubmit={handleSubmit(onAddTask)}
+              className="flex w-full flex-col gap-6"
+            >
               <div>
                 <label
                   className="mb-2 block text-xs font-bold text-medium-grey dark:text-white"
@@ -56,6 +88,8 @@ export default function AddNewTask({ children }: AddNewTaskProps) {
                   type="text"
                   id="title"
                   placeholder="e.g. Take coffee break"
+                  {...register('title')}
+                  error={errors.title?.message}
                 />
               </div>
 
@@ -70,6 +104,7 @@ export default function AddNewTask({ children }: AddNewTaskProps) {
                   id="description"
                   className="h-28 w-full resize-none rounded border border-medium-grey/25 bg-transparent px-4 py-2 text-xs font-medium leading-6 outline-1 outline-main-purple dark:text-white"
                   placeholder="e.g. It’s always good to take a break. This 15 minute break will  recharge the batteries little."
+                  {...register('description')}
                 />
               </div>
 
@@ -78,19 +113,32 @@ export default function AddNewTask({ children }: AddNewTaskProps) {
                   Subtasks
                 </span>
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between gap-4">
-                    <Input type="text" />
-                    <X className="text-medium-grey" size={20} strokeWidth={3} />
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <Input type="text" />
-                    <X className="text-medium-grey" size={20} strokeWidth={3} />
-                  </div>
+                  {fields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="flex items-center justify-between gap-4"
+                    >
+                      <Input
+                        type="text"
+                        {...field}
+                        {...register(`subtasks.${index}.title`)}
+                      />
+                      <button type="button" onClick={() => remove(index)}>
+                        <X
+                          className="text-medium-grey"
+                          size={20}
+                          strokeWidth={3}
+                        />
+                      </button>
+                    </div>
+                  ))}
                 </div>
 
                 <Button
                   className="mt-3 flex items-center justify-center gap-1 py-3 text-xs"
                   variant="secondary"
+                  type="button"
+                  onClick={() => append({ id: nanoid(), title: '' })}
                 >
                   <Plus size={12} /> Add New Subtask
                 </Button>
@@ -100,7 +148,14 @@ export default function AddNewTask({ children }: AddNewTaskProps) {
                 <span className="mb-2 block text-xs font-bold text-medium-grey dark:text-white">
                   Status
                 </span>
-                <Select />
+                <Controller
+                  name="columnId"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { onChange } }) => (
+                    <Select onChange={onChange} />
+                  )}
+                />
               </div>
 
               <Button

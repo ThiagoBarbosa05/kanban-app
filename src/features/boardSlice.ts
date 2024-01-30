@@ -1,6 +1,8 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice, nanoid } from '@reduxjs/toolkit'
 
+import { Task } from '@/@types'
+
 export interface BoardState {
   id: string
   name: string
@@ -101,10 +103,23 @@ export const boardSlice = createSlice({
         board.columns = action.payload.columns
       }
     },
+    addTask(state, action: PayloadAction<Task>) {
+      const board = state.find((board) => board.id === action.payload.boardId)
+
+      if (board) {
+        board.tasks?.push(action.payload)
+      }
+    },
   },
 })
 
-export const { addBoard, selectBoard, editBoard, deleteBoard, addColumn } =
-  boardSlice.actions
+export const {
+  addBoard,
+  selectBoard,
+  editBoard,
+  deleteBoard,
+  addColumn,
+  addTask,
+} = boardSlice.actions
 
 export default boardSlice.reducer
